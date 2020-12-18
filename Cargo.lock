@@ -79,6 +79,7 @@ dependencies = [
  "base64 0.13.0",
  "reqwest",
  "rocket",
+ "serde_json",
 ]
 
 [[package]]
