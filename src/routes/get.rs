@@ -3,7 +3,7 @@ use rocket::State;
 use rocket::{
     Outcome,
     http::{Status},
-    response::{self, content},
+    response::{content},
     request::{self, Request, FromRequest}
 };
 
@@ -27,12 +27,12 @@ pub enum ApiKeyError {
 
 impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
     type Error = ApiKeyError;
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+    fn from_request(_request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid))
     }
 }
 
 #[get("/home")]
-pub fn home(key: ApiKey) -> &'static str {
+pub fn home(_key: ApiKey) -> &'static str {
     "Sensitive data."
 }

@@ -1,7 +1,7 @@
 extern crate base64;
 use reqwest::blocking;
 use reqwest::header::{CONTENT_TYPE, AUTHORIZATION};
-use serde_json::{json, from_str};
+use serde_json::{json};
 
 // Thanks to static lifetime elision, you *usually* won't need to explicitly use 'static
 const API_URI: &str = "http://localhost:9200";
