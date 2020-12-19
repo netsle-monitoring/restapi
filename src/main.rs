@@ -3,14 +3,19 @@
 
 mod elastic;
 mod routes;
+mod guards;
 
 fn main() {
     let elastic = elastic::client::Client::new("elastic", "changeme");   
+    let users = vec!((String::from("amit"), String::from("123")));
 
-    rocket::ignite().manage(elastic::ElasticClient(elastic)).mount("/", routes![
-        routes::get::index, 
-        routes::get::network_stats, 
-        routes::get::home
-    ])
-    .launch();
+    rocket::ignite()
+        .manage(elastic::ElasticClient(elastic))
+        .manage(guards::Users(users))
+        .mount("/", routes![
+            routes::get::index, 
+            routes::get::network_stats, 
+            routes::get::home
+        ])
+        .launch();
 }
