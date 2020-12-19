@@ -1,4 +1,5 @@
-use serde::{Serialize, Deserialize};
+use jsonwebtoken::TokenData;
+use serde::{Deserialize, Serialize};
 
 // (Username, Password)
 pub struct Users(pub Vec<(String, String)>);
@@ -7,5 +8,22 @@ pub struct Users(pub Vec<(String, String)>);
 pub struct JWTClaims {
     exp: usize,
     sub: String, // username
-    iss: String // Netsle
+    iss: String, // Netsle
 }
+
+pub struct ApiKey(pub TokenData<JWTClaims>);
+
+#[derive(Debug)]
+pub enum ApiKeyError {
+    Invalid,
+    Expired,
+    Missing,
+}
+
+#[derive(Debug, Clone)]
+pub struct LoginCredentials {
+    pub username: String,
+    pub password: String,
+}
+
+pub mod auth;
