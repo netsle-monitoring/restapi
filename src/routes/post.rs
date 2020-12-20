@@ -43,10 +43,7 @@ pub fn login(
         )
     }
 
-    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
-    let refresh_jwt_expiry = env::var("REFRESH_TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
-    let (access_token, expiry) = auth::generate_jwt(&login, regular_jwt_expiry);
-    let (refresh_token, _) = auth::generate_jwt(&login, refresh_jwt_expiry);
+    let (access_token, expiry, refresh_token) = auth::generate_tokens(&login);
 
     let response = SuccessfulLoginResponse {
         refresh_token,

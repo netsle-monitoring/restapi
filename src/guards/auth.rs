@@ -80,8 +80,8 @@ impl<'f> FromForm<'f> for LoginCredentials {
         })
     }
 }
-
-pub fn generate_jwt(credentials: &LoginCredentials, expiry: u64) -> (String, usize) {
+                                                                    // (access, expiry, refresh)
+pub fn generate_tokens(credentials: &LoginCredentials) -> (String, usize, String) {
     let start = SystemTime::now();
     let since_the_epoch = start
         .duration_since(UNIX_EPOCH)
@@ -89,20 +89,36 @@ pub fn generate_jwt(credentials: &LoginCredentials, expiry: u64) -> (String, usi
         .as_secs();
     
     let jwt_secret = env::var("JWT_SECRET").unwrap();
+    let jwt_refresh_secret = env::var("JWT_REFRESH_SECRET").unwrap();
+    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
+    let refresh_jwt_expiry = env::var("REFRESH_TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
 
-    let claims = JWTClaims {
+    let access_token_claims = JWTClaims {
         iss: String::from("Netsle"),
         sub: credentials.clone().username,
-        exp: (since_the_epoch + (expiry * 60)) as usize, // Expires in whatever minutes are inside .env
+        exp: (since_the_epoch + (regular_jwt_expiry * 60)) as usize, // Expires in whatever minutes are inside .env
     };
 
-    // Obviously this won't be the production secret, just for now
-    let token = encode(
+    // TODO: Have the refresh secret unique between users
+    let refresh_token_claims = JWTClaims {
+        iss: String::from("Netsle"),
+        sub: credentials.clone().username,
+        exp: (since_the_epoch + (refresh_jwt_expiry * 60)) as usize, // Expires in whatever minutes are inside .env
+    };
+
+    let access_token = encode(
         &Header::default(),
-        &claims,
+        &access_token_claims,
         &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap();
     
-    return (token, claims.exp);
+    let refresh_token = encode(
+        &Header::default(),
+        &access_token_claims,
+        &EncodingKey::from_secret(jwt_refresh_secret.as_ref()),
+    )
+    .unwrap();
+    
+    return (access_token, access_token_claims.exp, refresh_token);
 }
