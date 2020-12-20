@@ -21,7 +21,7 @@ impl Client {
 
     // Return the whole request for now (act as a proxy)
     pub fn match_all_for_index(&self, index: &'static str) -> String {
-        let full_url = format!("{}/{}/_search", index, API_URI);
+        let full_url = format!("{}/{}/_search", API_URI, index);
         let result = self
             .reqwest_client
             .get(&full_url)
