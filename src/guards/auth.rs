@@ -7,6 +7,7 @@ use rocket::{
     Outcome,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::env;
 
 impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
     type Error = ApiKeyError;
@@ -83,18 +84,21 @@ pub fn generate_jwt(credentials: &LoginCredentials) -> String {
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
         .as_secs();
+    
+    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
+    let jwt_secret = env::var("JWT_SECRET").unwrap();
 
     let claims = JWTClaims {
         iss: String::from("Netsle"),
         sub: credentials.clone().username,
-        exp: (since_the_epoch + (15 * 60)) as usize, // Expires in 15 minutes
+        exp: (since_the_epoch + (regular_jwt_expiry * 60)) as usize, // Expires in whatever minutes are inside .env
     };
 
     // Obviously this won't be the production secret, just for now
     let token = encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret("ef2d6ea9-a99a-4158-981a-7fa890ca22f7".as_ref()),
+        &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap();
     return token;

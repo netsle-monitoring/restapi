@@ -2,11 +2,16 @@
 #[macro_use]
 extern crate rocket;
 
+use dotenv;
+
 mod elastic;
 mod guards;
 mod routes;
 
 fn main() {
+    // Load environment variables through the file .env
+    dotenv::from_filename(".env").ok();
+
     let elastic = elastic::client::Client::new("elastic", "changeme");
     let users = vec![(String::from("amit"), String::from("123"))];
 
