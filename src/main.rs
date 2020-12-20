@@ -3,10 +3,10 @@
 extern crate rocket;
 
 use dotenv;
-
 mod elastic;
 mod guards;
 mod routes;
+mod mongo;
 
 fn main() {
     // Load environment variables through the file .env
@@ -18,6 +18,7 @@ fn main() {
     rocket::ignite()
         .manage(elastic::ElasticClient(elastic))
         .manage(guards::Users(users))
+        .manage(mongo::connection::init_pool())
         .mount(
             "/",
             routes![

@@ -15,3 +15,6 @@ serde = {version = "1.0", features = ["derive"] }
 jsonwebtoken = "7"
 rocket_contrib = {version ="0.4.6", deafult-features = false, features=["json"]}
 dotenv = "0.15.0"
+r2d2 = "0.8.3"
+r2d2-mongodb = "*"
+mongodb = "0.3.11"
