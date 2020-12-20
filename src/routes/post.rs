@@ -1,13 +1,8 @@
 use crate::guards::{self, auth};
-use rocket::http::Status;
 use rocket::request::{Form, State};
-use rocket::response::status;
 use rocket::response::status::BadRequest;
 use rocket::response::content;
-use serde_json::json;
 use serde::{Serialize};
-
-use std::env;
 
 #[derive(Serialize)]
 struct SuccessfulLoginResponse {
