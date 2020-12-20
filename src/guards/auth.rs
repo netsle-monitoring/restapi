@@ -30,10 +30,13 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
             iss: Some("Netsle".to_string()),
             ..Validation::default()
         };
+    
+        let jwt_secret = env::var("JWT_SECRET").unwrap();
+
         // Obviously this won't be the production secret, just for now
         let token_data = match decode::<JWTClaims>(
             token,
-            &DecodingKey::from_secret("ef2d6ea9-a99a-4158-981a-7fa890ca22f7".as_ref()),
+            &DecodingKey::from_secret(jwt_secret.as_ref()),
             &validation,
         ) {
             Ok(data) => data,
