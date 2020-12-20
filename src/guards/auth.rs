@@ -115,7 +115,7 @@ pub fn generate_tokens(credentials: &LoginCredentials) -> (String, usize, String
     
     let refresh_token = encode(
         &Header::default(),
-        &access_token_claims,
+        &refresh_token_claims,
         &EncodingKey::from_secret(jwt_refresh_secret.as_ref()),
     )
     .unwrap();
