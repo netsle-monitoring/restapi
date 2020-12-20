@@ -6,7 +6,7 @@ pub struct Users(pub Vec<(String, String)>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JWTClaims {
-    exp: usize,
+    pub exp: usize,
     sub: String, // username
     iss: String, // Netsle
 }

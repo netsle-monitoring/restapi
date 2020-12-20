@@ -2,22 +2,59 @@ use crate::guards::{self, auth};
 use rocket::http::Status;
 use rocket::request::{Form, State};
 use rocket::response::status;
+use rocket::response::status::BadRequest;
+use rocket::response::content;
+use serde_json::json;
+use serde::{Serialize};
+
+use std::env;
+
+#[derive(Serialize)]
+struct SuccessfulLoginResponse {
+    access_token: String,
+    refresh_token: String,
+    expiry: usize
+}
+
+#[derive(Serialize)]
+struct ErrorResponse {
+    message: &'static str
+}
 
 #[post("/login", data = "<login>")]
 pub fn login(
     users: State<guards::Users>,
     login: Form<guards::LoginCredentials>,
-) -> status::Custom<String> {
+) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
     let static_username = &users.0[0].0;
     let static_password = &users.0[0].1;
 
     if static_password != &login.password || static_username != &login.username {
-        return status::Custom(
-            Status::new(401, "Invalid credentials"),
-            String::from("Invalid credentials"),
-        );
+        let response = ErrorResponse {
+            message: "Invalid Credentials!"
+        };
+
+        return Err(
+            BadRequest(
+                Some(content::Json(
+                    serde_json::to_string(&response).unwrap()
+                ))
+            )
+        )
     }
 
-    let token = auth::generate_jwt(&login);
-    status::Custom(Status::new(200, "Success"), token)
+    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
+    let refresh_jwt_expiry = env::var("REFRESH_TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
+    let (access_token, expiry) = auth::generate_jwt(&login, regular_jwt_expiry);
+    let (refresh_token, _) = auth::generate_jwt(&login, refresh_jwt_expiry);
+
+    let response = SuccessfulLoginResponse {
+        refresh_token,
+        access_token,
+        expiry
+    };
+
+    Ok(
+        content::Json(serde_json::to_string(&response).unwrap())
+    )
 }

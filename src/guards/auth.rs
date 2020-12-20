@@ -30,10 +30,13 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
             iss: Some("Netsle".to_string()),
             ..Validation::default()
         };
+    
+        let jwt_secret = env::var("JWT_SECRET").unwrap();
+
         // Obviously this won't be the production secret, just for now
         let token_data = match decode::<JWTClaims>(
             token,
-            &DecodingKey::from_secret("ef2d6ea9-a99a-4158-981a-7fa890ca22f7".as_ref()),
+            &DecodingKey::from_secret(jwt_secret.as_ref()),
             &validation,
         ) {
             Ok(data) => data,
@@ -78,20 +81,19 @@ impl<'f> FromForm<'f> for LoginCredentials {
     }
 }
 
-pub fn generate_jwt(credentials: &LoginCredentials) -> String {
+pub fn generate_jwt(credentials: &LoginCredentials, expiry: u64) -> (String, usize) {
     let start = SystemTime::now();
     let since_the_epoch = start
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
         .as_secs();
     
-    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
     let jwt_secret = env::var("JWT_SECRET").unwrap();
 
     let claims = JWTClaims {
         iss: String::from("Netsle"),
         sub: credentials.clone().username,
-        exp: (since_the_epoch + (regular_jwt_expiry * 60)) as usize, // Expires in whatever minutes are inside .env
+        exp: (since_the_epoch + (expiry * 60)) as usize, // Expires in whatever minutes are inside .env
     };
 
     // Obviously this won't be the production secret, just for now
@@ -101,5 +103,6 @@ pub fn generate_jwt(credentials: &LoginCredentials) -> String {
         &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap();
-    return token;
+    
+    return (token, claims.exp);
 }
