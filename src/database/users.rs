@@ -4,7 +4,6 @@ use crate::schema::users::dsl::{
     hashed_pw as hashed_pw_column, id as id_column, refresh_token as refresh_token_column,
     salt as salt_column, username as username_column, users,
 };
-use crate::MainDbConn;
 use diesel::prelude::*;
 use diesel::{insert_into, SqliteConnection};
 
@@ -33,7 +32,7 @@ pub fn get_user(conn: &SqliteConnection, username: &str) -> Option<User> {
         .optional()
         .unwrap();
 
-    if (result.is_some()) {
+    if result.is_some() {
         return result;
     } else {
         return None;
@@ -48,7 +47,7 @@ pub fn get_username_for_refresh_token(conn: &SqliteConnection, token: &str) -> O
         .optional()
         .unwrap();
 
-    if (result.is_some()) {
+    if result.is_some() {
         return Some(result.unwrap().username);
     } else {
         return None;
@@ -57,7 +56,7 @@ pub fn get_username_for_refresh_token(conn: &SqliteConnection, token: &str) -> O
 
 pub fn update_refresh_token(conn: &SqliteConnection, username: &str, refresh_token: &str) {
     let target = users.filter(username_column.eq(username.to_string()));
-    let result = diesel::update(target)
+    let _result = diesel::update(target)
         .set(refresh_token_column.eq(refresh_token.to_string()))
         .execute(&*conn);
 }

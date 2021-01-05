@@ -98,7 +98,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
 
         let auth_header = header_map.get("X-Refresh-Token").next().unwrap();
 
-        if (auth_header.len() == 0) {
+        if auth_header.len() == 0 {
             println!("Right here boy");
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid));
         }
@@ -122,7 +122,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
         let jwt_secret = env::var("JWT_REFRESH_SECRET").unwrap();
 
         // Obviously this won't be the production secret, just for now
-        let token_data = match decode::<JWTClaims>(
+        match decode::<JWTClaims>(
             token,
             &DecodingKey::from_secret(format!("{}{}", &jwt_secret, &username_of_refresh).as_ref()),
             &validation,

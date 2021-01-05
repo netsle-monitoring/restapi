@@ -3,7 +3,7 @@ use crate::database;
 use crate::guards::RefreshApiKey;
 use crate::guards::{self, auth};
 use crate::MainDbConn;
-use rocket::request::{Form, State};
+use rocket::request::Form;
 use rocket::response::content;
 use rocket::response::status::BadRequest;
 use serde::Serialize;
@@ -25,7 +25,7 @@ pub fn login(
     conn: MainDbConn,
     login: Form<guards::LoginCredentials>,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
-    let invalidCredsResponse = ErrorResponse {
+    let invalid_creds_response = ErrorResponse {
         message: "Invalid Credentials!",
     };
 
@@ -34,7 +34,7 @@ pub fn login(
     // TODO: Find a way of not cloning this piece of code.
     if user_result.is_none() {
         return Err(BadRequest(Some(content::Json(
-            serde_json::to_string(&invalidCredsResponse).unwrap(),
+            serde_json::to_string(&invalid_creds_response).unwrap(),
         ))));
     }
 
@@ -44,7 +44,7 @@ pub fn login(
 
     if password_validity.is_err() {
         return Err(BadRequest(Some(content::Json(
-            serde_json::to_string(&invalidCredsResponse).unwrap(),
+            serde_json::to_string(&invalid_creds_response).unwrap(),
         ))));
     }
 
