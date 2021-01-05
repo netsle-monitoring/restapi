@@ -17,4 +17,4 @@ rocket_contrib = {version ="0.4.6", deafult-features = false, features=["json", 
 dotenv = "0.15.0"
 
 [global.databases]
-sqlite_logs = { url = "./db.sqlite" }
+main = { url = "./db.sqlite" }

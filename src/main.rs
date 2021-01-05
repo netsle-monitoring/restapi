@@ -4,11 +4,17 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 
+use rocket_contrib::databases::diesel;
 use dotenv;
 
 mod elastic;
 mod guards;
 mod routes;
+mod database;
+
+#[database("main")]
+struct MainDbConn(diesel::SqliteConnection);
+
 
 fn main() {
     // Load environment variables through the file .env
@@ -20,6 +26,7 @@ fn main() {
     rocket::ignite()
         .manage(elastic::ElasticClient(elastic))
         .manage(guards::Users(users))
+        .attach(MainDbConn::fairing())
         .mount(
             "/",
             routes![
