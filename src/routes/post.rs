@@ -20,6 +20,16 @@ struct ErrorResponse {
     message: &'static str,
 }
 
+/**
+ * This endpoint requires a form data which contains two fields
+ * username: String
+ * password: String
+ * If the credentials are correct against the database the client should get
+ * a 200 Response code and a body which contains:
+ * expires: usize | this number represents the timestamp at which the access token is going to expire
+ * access_token: String | Self explanatory
+ * refresh_token: String | A token which is required to use in order to persist sessions and API communication overall
+ */
 #[post("/login", data = "<login>")]
 pub fn login(
     conn: MainDbConn,
@@ -61,6 +71,14 @@ pub fn login(
     Ok(content::Json(serde_json::to_string(&response).unwrap()))
 }
 
+/**
+ * The way this endpoint works is that
+ * whenever you want to get a new refresh token you would
+ * want to send an EMPTY request with an header by the name of
+ * X-Refresh-Token
+ * If the refresh token is correct the response will be the same as
+ * you were to login with a username / password
+ */
 #[post("/refresh")]
 pub fn refresh(
     conn: MainDbConn,
