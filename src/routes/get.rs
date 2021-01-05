@@ -2,9 +2,11 @@ use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
+use crate::MainDbConn;
+use crate::database::users::{create_user, get_user, update_refresh_token};
 
 #[get("/")]
-pub fn index() -> &'static str {
+pub fn index(conn: MainDbConn) -> &'static str {
     "Hello, netsle!"
 }
 
