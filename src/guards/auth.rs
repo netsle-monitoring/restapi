@@ -6,8 +6,8 @@ use rocket::{
     request::{self, FormItems, FromForm, FromRequest, Request},
     Outcome,
 };
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
     type Error = ApiKeyError;
@@ -30,7 +30,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
             iss: Some("Netsle".to_string()),
             ..Validation::default()
         };
-    
+
         let jwt_secret = env::var("JWT_SECRET").unwrap();
 
         // Obviously this won't be the production secret, just for now
@@ -80,18 +80,24 @@ impl<'f> FromForm<'f> for LoginCredentials {
         })
     }
 }
-                                                                    // (access, expiry, refresh)
+// (access, expiry, refresh)
 pub fn generate_tokens(credentials: &LoginCredentials) -> (String, usize, String) {
     let start = SystemTime::now();
     let since_the_epoch = start
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
         .as_secs();
-    
+
     let jwt_secret = env::var("JWT_SECRET").unwrap();
     let jwt_refresh_secret = env::var("JWT_REFRESH_SECRET").unwrap();
-    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
-    let refresh_jwt_expiry = env::var("REFRESH_TOKEN_EXPIRY_IN_MINUTES").unwrap().parse::<u64>().unwrap();
+    let regular_jwt_expiry = env::var("TOKEN_EXPIRY_IN_MINUTES")
+        .unwrap()
+        .parse::<u64>()
+        .unwrap();
+    let refresh_jwt_expiry = env::var("REFRESH_TOKEN_EXPIRY_IN_MINUTES")
+        .unwrap()
+        .parse::<u64>()
+        .unwrap();
 
     let access_token_claims = JWTClaims {
         iss: String::from("Netsle"),
@@ -112,13 +118,13 @@ pub fn generate_tokens(credentials: &LoginCredentials) -> (String, usize, String
         &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap();
-    
+
     let refresh_token = encode(
         &Header::default(),
         &refresh_token_claims,
         &EncodingKey::from_secret(jwt_refresh_secret.as_ref()),
     )
     .unwrap();
-    
+
     return (access_token, access_token_claims.exp, refresh_token);
 }

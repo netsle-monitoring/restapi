@@ -11,11 +11,11 @@ extern crate diesel;
 use dotenv;
 
 mod crypto;
-mod schema;
+mod database;
 mod elastic;
 mod guards;
 mod routes;
-mod database;
+mod schema;
 
 #[database("main")]
 pub struct MainDbConn(diesel::SqliteConnection);
