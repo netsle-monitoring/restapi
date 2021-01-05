@@ -23,10 +23,10 @@ pub fn create_user(conn: &SqliteConnection, username: String, password: String) 
     // diesel::insert_into(users).
 }
 
-pub fn get_user(conn: &SqliteConnection, username: String) -> Option<User> {
+pub fn get_user(conn: &SqliteConnection, username: &str) -> Option<User> {
     let result: Option<User> = users
         // .select((id_column, username_column, salt_column, refresh_token_column, hashed_pw_column))
-        .filter(username_column.eq(username))
+        .filter(username_column.eq(username.to_string()))
         .first(&*conn)
         .optional()
         .unwrap();
@@ -38,11 +38,9 @@ pub fn get_user(conn: &SqliteConnection, username: String) -> Option<User> {
     }
 }
 
-pub fn update_refresh_token(conn: &SqliteConnection, username: String, refresh_token: String) {
-    let target = users.filter(username_column.eq(username));
+pub fn update_refresh_token(conn: &SqliteConnection, username: &str, refresh_token: &str) {
+    let target = users.filter(username_column.eq(username.to_string()));
     let result = diesel::update(target)
-        .set(refresh_token_column.eq(refresh_token))
+        .set(refresh_token_column.eq(refresh_token.to_string()))
         .execute(&*conn);
-
-    println!("{:?}", result);
 }

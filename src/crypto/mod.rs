@@ -32,9 +32,9 @@ pub fn hash_password(username: &str, password: &str) -> (Vec<u8>, Vec<u8>) {
 }
 
 pub fn verify_password(
-    username: String,
+    username: &str,
     hashed_password: Vec<u8>,
-    attempted_password: String,
+    attempted_password: &str,
 ) -> Result<(), Error> {
     let salt = generate_salt(&username);
     pbkdf2::verify(
