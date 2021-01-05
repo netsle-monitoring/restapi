@@ -36,7 +36,8 @@ fn main() {
             routes![
                 routes::get::index,
                 routes::get::network_stats,
-                routes::post::login
+                routes::post::login,
+                routes::post::refresh
             ],
         )
         .launch();
