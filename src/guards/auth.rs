@@ -99,7 +99,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
         let auth_header = header_map.get("X-Refresh-Token").next().unwrap();
 
         if auth_header.len() == 0 {
-            println!("Right here boy");
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid));
         }
 

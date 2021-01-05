@@ -23,11 +23,6 @@ pub fn hash_password(username: &str, password: &str) -> (Vec<u8>, Vec<u8>) {
         &mut final_hash,
     );
 
-    println!(
-        "username: {} hash: {:?}",
-        username,
-        String::from_utf8_lossy(&final_hash)
-    );
     (salt, final_hash.to_vec())
 }
 
