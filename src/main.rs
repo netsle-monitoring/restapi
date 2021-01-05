@@ -1,20 +1,24 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
 extern crate rocket;
+
 #[macro_use]
 extern crate rocket_contrib;
 
-use rocket_contrib::databases::diesel;
+#[macro_use]
+extern crate diesel;
+
 use dotenv;
 
+mod crypto;
+mod database;
 mod elastic;
 mod guards;
 mod routes;
-mod database;
+mod schema;
 
 #[database("main")]
-struct MainDbConn(diesel::SqliteConnection);
-
+pub struct MainDbConn(diesel::SqliteConnection);
 
 fn main() {
     // Load environment variables through the file .env
@@ -32,7 +36,8 @@ fn main() {
             routes![
                 routes::get::index,
                 routes::get::network_stats,
-                routes::post::login
+                routes::post::login,
+                routes::post::refresh
             ],
         )
         .launch();

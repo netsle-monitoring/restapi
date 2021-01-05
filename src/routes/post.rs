@@ -1,53 +1,97 @@
+use crate::crypto;
+use crate::database;
+use crate::guards::RefreshApiKey;
 use crate::guards::{self, auth};
-use rocket::request::{Form, State};
-use rocket::response::status::BadRequest;
+use crate::MainDbConn;
+use rocket::request::Form;
 use rocket::response::content;
-use serde::{Serialize};
-use crate::database::users;
+use rocket::response::status::BadRequest;
+use serde::Serialize;
 
 #[derive(Serialize)]
 struct SuccessfulLoginResponse {
     access_token: String,
     refresh_token: String,
-    expiry: usize
+    expiry: usize,
 }
 
 #[derive(Serialize)]
 struct ErrorResponse {
-    message: &'static str
+    message: &'static str,
 }
 
+/**
+ * This endpoint requires a form data which contains two fields
+ * username: String
+ * password: String
+ * If the credentials are correct against the database the client should get
+ * a 200 Response code and a body which contains:
+ * expires: usize | this number represents the timestamp at which the access token is going to expire
+ * access_token: String | Self explanatory
+ * refresh_token: String | A token which is required to use in order to persist sessions and API communication overall
+ */
 #[post("/login", data = "<login>")]
 pub fn login(
-    users: State<guards::Users>,
+    conn: MainDbConn,
     login: Form<guards::LoginCredentials>,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
-    let static_username = &users.0[0].0;
-    let static_password = &users.0[0].1;
+    let invalid_creds_response = ErrorResponse {
+        message: "Invalid Credentials!",
+    };
 
-    if static_password != &login.password || static_username != &login.username {
-        let response = ErrorResponse {
-            message: "Invalid Credentials!"
-        };
+    let user_result = database::users::get_user(&*conn, &login.username);
 
-        return Err(
-            BadRequest(
-                Some(content::Json(
-                    serde_json::to_string(&response).unwrap()
-                ))
-            )
-        )
+    // TODO: Find a way of not cloning this piece of code.
+    if user_result.is_none() {
+        return Err(BadRequest(Some(content::Json(
+            serde_json::to_string(&invalid_creds_response).unwrap(),
+        ))));
     }
 
-    let (access_token, expiry, refresh_token) = auth::generate_tokens(&login);
+    let user = user_result.unwrap();
+    let password_validity =
+        crypto::verify_password(&login.username, user.hashed_pw, &login.password);
+
+    if password_validity.is_err() {
+        return Err(BadRequest(Some(content::Json(
+            serde_json::to_string(&invalid_creds_response).unwrap(),
+        ))));
+    }
+
+    let (access_token, expiry, refresh_token) =
+        auth::generate_tokens(String::from(&login.username));
 
     let response = SuccessfulLoginResponse {
         refresh_token,
         access_token,
-        expiry
+        expiry,
     };
 
-    Ok(
-        content::Json(serde_json::to_string(&response).unwrap())
-    )
+    database::users::update_refresh_token(&*conn, &login.username, &response.refresh_token);
+    Ok(content::Json(serde_json::to_string(&response).unwrap()))
+}
+
+/**
+ * The way this endpoint works is that
+ * whenever you want to get a new refresh token you would
+ * want to send an EMPTY request with an header by the name of
+ * X-Refresh-Token
+ * If the refresh token is correct the response will be the same as
+ * you were to login with a username / password
+ */
+#[post("/refresh")]
+pub fn refresh(
+    conn: MainDbConn,
+    refresh: RefreshApiKey,
+) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
+    let (access_token, expiry, refresh_token) = auth::generate_tokens(String::from(&refresh.0));
+
+    let response = SuccessfulLoginResponse {
+        refresh_token,
+        access_token,
+        expiry,
+    };
+
+    database::users::update_refresh_token(&*conn, &refresh.0, &response.refresh_token);
+    Ok(content::Json(serde_json::to_string(&response).unwrap()))
 }

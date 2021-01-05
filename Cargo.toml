@@ -14,7 +14,6 @@ serde_json = "1.0"
 serde = {version = "1.0", features = ["derive"] }
 jsonwebtoken = "7"
 rocket_contrib = {version ="0.4.6", deafult-features = false, features=["json", "diesel_sqlite_pool"]}
+diesel = { version = "1.4.4", features = ["sqlite"] }
 dotenv = "0.15.0"
-
-[global.databases]
-main = { url = "./db.sqlite" }
+ring = "0.16.19"
