@@ -47,7 +47,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
                     return Outcome::Failure((Status::Forbidden, ApiKeyError::Expired))
                 }
                 InvalidToken | InvalidSignature => {
-                    return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid))
+                    return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid))
                 }
                 _ => panic!(format!("{:?}", *err.kind())),
             },
@@ -92,11 +92,11 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
         let header_map = request.headers();
         let conn = request.guard::<MainDbConn>().unwrap();
 
-        if !header_map.contains("X-Refresh-Token") {
+        if !header_map.contains("Refresh-Token") {
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Missing));
         }
 
-        let auth_header = header_map.get("X-Refresh-Token").next().unwrap();
+        let auth_header = header_map.get("Refresh-Token").next().unwrap();
 
         if auth_header.len() == 0 {
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid));
@@ -132,7 +132,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
                     return Outcome::Failure((Status::Forbidden, ApiKeyError::Expired))
                 }
                 InvalidToken | InvalidSignature => {
-                    return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid))
+                    return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid))
                 }
                 _ => panic!(format!("{:?}", *err.kind())),
             },

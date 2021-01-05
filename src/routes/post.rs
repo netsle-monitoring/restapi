@@ -79,8 +79,8 @@ pub fn login(
  * If the refresh token is correct the response will be the same as
  * you were to login with a username / password
  */
-#[post("/refresh")]
-pub fn refresh(
+#[post("/refresh_token")]
+pub fn refresh_token(
     conn: MainDbConn,
     refresh: RefreshApiKey,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
@@ -94,4 +94,9 @@ pub fn refresh(
 
     database::users::update_refresh_token(&*conn, &refresh.0, &response.refresh_token);
     Ok(content::Json(serde_json::to_string(&response).unwrap()))
+}
+
+#[options("/refresh_token")]
+pub fn refresh_token_options() ->&'static str {
+    ""
 }

@@ -28,3 +28,4 @@ pub struct LoginCredentials {
 }
 
 pub mod auth;
+pub mod cors;

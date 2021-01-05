@@ -31,13 +31,15 @@ fn main() {
         .manage(elastic::ElasticClient(elastic))
         .manage(guards::Users(users))
         .attach(MainDbConn::fairing())
+        .attach(guards::cors::CORS())
         .mount(
             "/",
             routes![
                 routes::get::index,
                 routes::get::network_stats,
                 routes::post::login,
-                routes::post::refresh
+                routes::post::refresh_token,
+                routes::post::refresh_token_options
             ],
         )
         .launch();
