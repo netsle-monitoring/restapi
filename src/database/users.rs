@@ -7,7 +7,11 @@ use crate::schema::users::dsl::{
 use diesel::prelude::*;
 use diesel::{insert_into, SqliteConnection};
 
-pub fn create_user(conn: &SqliteConnection, username: String, password: String) {
+pub fn create_user(
+    conn: &SqliteConnection,
+    username: String,
+    password: String,
+) -> Result<(), &'static str> {
     let (salt, hash) = hash_password(&username, &password);
     let new_user = NewUser {
         username: &username,
@@ -16,10 +20,12 @@ pub fn create_user(conn: &SqliteConnection, username: String, password: String) 
         salt,
     };
 
-    insert_into(users)
-        .values(&new_user)
-        .execute(&*conn)
-        .unwrap();
+    let result = insert_into(users).values(&new_user).execute(&*conn);
+
+    match result {
+        Ok(_) => Ok(()),
+        Err(_) => Err("Error while creating user"),
+    }
     // diesel::insert_into(users).
 }
 

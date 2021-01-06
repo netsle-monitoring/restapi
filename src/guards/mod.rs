@@ -1,9 +1,6 @@
 use jsonwebtoken::TokenData;
 use serde::{Deserialize, Serialize};
 
-// (Username, Password)
-pub struct Users(pub Vec<(String, String)>);
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JWTClaims {
     pub exp: usize,
