@@ -16,11 +16,11 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let header_map = request.headers();
 
-        if !header_map.contains("Autherization") {
+        if !header_map.contains("Authorization") {
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Missing));
         }
 
-        let auth_header = header_map.get("Autherization").next().unwrap();
+        let auth_header = header_map.get("Authorization").next().unwrap();
 
         if !(auth_header.len() > 7) {
             return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid));
