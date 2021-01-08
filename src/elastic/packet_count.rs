@@ -13,19 +13,20 @@ pub struct Hits {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NestedHits {
-    pub fields: FieldsData
+    #[serde(rename(deserialize = "_source"))]
+    pub source: FieldsData
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FieldsData {
     #[serde(rename(deserialize = "@timestamp"))]
-    pub timestamp: Vec<String>,
-    pub packet_count: Vec<i32>,
+    pub timestamp: String,
+    pub packet_count: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FinalData {
-    data: Vec<PacketData>
+    pub data: Vec<PacketData>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,8 +42,8 @@ impl From<MainData> for FinalData {
         for hit in hits.hits.hits {
             data.push(
                 PacketData {
-                    count: hit.fields.packet_count[0],
-                    timestamp: String::from(&hit.fields.timestamp[0])
+                    count: hit.source.packet_count,
+                    timestamp: String::from(&hit.source.timestamp)
                 }
             )
         }

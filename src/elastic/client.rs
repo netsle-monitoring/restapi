@@ -34,45 +34,33 @@ impl Client {
         )
     }
 
-    // defaulting to 15 minutes for now...
-    pub fn get_packet_count_since(&self, index: &'static str) -> String {
+    pub fn get_packet_count_since(&self, index: &'static str, minutes: i32) -> packet_count::FinalData {
         let start = SystemTime::now();
         let since_the_epoch = start
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis()
-            - 900000;
+            - ((minutes * 60000) as u128);
 
         let result = self.get_request(
             index,
             json!({
-              "query": {
-                "range": {
-                  "@timestamp": {
-                    "gt": since_the_epoch.to_string(),
-                    "format": "epoch_millis"
+                "query": {
+                  "range": {
+                    "@timestamp": {
+                      "gt": since_the_epoch.to_string(),
+                      "format": "epoch_millis"
+                    }
                   }
-                }
-              },
-              "size": 15,
-              "script_fields": {
-                "packet_count": {
-                  "script": {
-                    "lang": "painless",
-                    "source": "int sum=0; for (HashMap v: params['_source']['ips']) {sum += v.count} return sum;"
-                  }
-                }
-              },
-          "fields": ["@timestamp"]
-            })
+                },
+                "size": 10000,
+                "fields": ["@timestamp", "packet_count"]
+              })
             .to_string(),
         );
 
         let main_hits: MainData = serde_json::from_value(result).unwrap();
-        let counts = packet_count::FinalData::from(main_hits);
-
-        serde_json::to_string(&counts)
-            .unwrap_or_else(|_| panic!("Error parsing packet count payload"))
+        packet_count::FinalData::from(main_hits)
         // println!("{:?}", hits);
         // serde_json::to_string(&hits).unwrap()
     }
