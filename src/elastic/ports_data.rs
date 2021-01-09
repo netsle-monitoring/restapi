@@ -19,38 +19,33 @@ pub struct NestedHits {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FieldsData {
-    #[serde(rename(deserialize = "@timestamp"))]
-    pub timestamp: String,
-    pub packet_count: i32,
+    pub ports: Vec<PortData>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PortData {
+    pub port: i32,
+    pub count: i32
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FinalData {
-    pub data: Vec<PacketData>
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PacketData {
-    pub timestamp: String,
-    pub count: i32
+    pub data: Vec<FieldsData>
 }
 
 impl From<MainData> for FinalData {
     fn from(hits: MainData) -> FinalData {
-        let mut data = Vec::<PacketData>::new();
+        let mut data = Vec::<FieldsData>::new();
         
         for hit in hits.hits.hits {
             data.push(
-                PacketData {
-                    count: hit.source.packet_count / 2, // The BPF program records both counts of source and dest.
-                    timestamp: String::from(&hit.source.timestamp)
-                }
+                hit.source
             )
         }
 
         FinalData {
             data
         }
-        // ()
     }
 }

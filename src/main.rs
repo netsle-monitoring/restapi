@@ -53,6 +53,7 @@ fn main() {
                 routes::get::index,
                 routes::get::dashboard_packet_count_graph,
                 routes::get::dashboard_total_packets,
+                routes::get::dashboard_ports_data,
                 routes::post::login,
                 routes::post::refresh_token,
                 routes::post::refresh_token_options

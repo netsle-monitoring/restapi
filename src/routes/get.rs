@@ -2,7 +2,9 @@ use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
-use serde_json::Value;
+// use serde_json::Value;
+use elastic::ports_data::PortData;
+use std::collections::HashMap;
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -34,5 +36,23 @@ pub fn dashboard_total_packets(
 
     content::Json(json!({
         "count": count
+    }).to_string())
+}
+
+#[get("/dashboard/ports_data")]
+pub fn dashboard_ports_data(
+    _access: ApiKey,
+    elastic: State<elastic::ElasticClient>,
+) -> content::Json<String> {
+    let response = elastic.0.get_ports_since("netsle", 10080);
+    let mut ports = HashMap::<u16, u32>::new();
+
+    for hit in response.data {
+        for port in hit.ports {
+            *ports.entry(port.port as u16).or_insert(0) += port.count as u32;
+        }
+    }
+    content::Json(json!({
+        // "ports": count
     }).to_string())
 }
