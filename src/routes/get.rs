@@ -2,8 +2,7 @@ use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
-// use serde_json::Value;
-use elastic::ports_data::PortData;
+use crate::database::IMPORTANT_PORTS;
 use std::collections::HashMap;
 
 #[get("/")]
@@ -49,10 +48,14 @@ pub fn dashboard_ports_data(
 
     for hit in response.data {
         for port in hit.ports {
-            *ports.entry(port.port as u16).or_insert(0) += port.count as u32;
+            if IMPORTANT_PORTS.contains(&(port.port as u16)) {
+                *ports.entry(port.port as u16).or_insert(0) += port.count as u32;
+            }
         }
     }
+
+    // TODO : filter important ports.
     content::Json(json!({
-        // "ports": count
+        "ports": ports
     }).to_string())
 }
