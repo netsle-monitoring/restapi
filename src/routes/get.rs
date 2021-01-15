@@ -1,8 +1,8 @@
+use crate::database::IMPORTANT_PORTS;
 use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
-use crate::database::IMPORTANT_PORTS;
 use std::collections::HashMap;
 
 #[get("/")]
@@ -33,9 +33,7 @@ pub fn dashboard_total_packets(
         count += i.count
     }
 
-    content::Json(json!({
-        "count": count
-    }).to_string())
+    content::Json(json!({ "count": count }).to_string())
 }
 
 #[get("/dashboard/ports_data")]
@@ -54,8 +52,5 @@ pub fn dashboard_ports_data(
         }
     }
 
-    // TODO : filter important ports.
-    content::Json(json!({
-        "ports": ports
-    }).to_string())
+    content::Json(json!({ "ports": ports }).to_string())
 }
