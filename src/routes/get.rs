@@ -54,3 +54,13 @@ pub fn dashboard_ports_data(
 
     content::Json(json!({ "ports": ports }).to_string())
 }
+
+#[get("/dashboard/usage_data")]
+pub fn dashboard_usage_data(
+    _access: ApiKey,
+    elastic: State<elastic::ElasticClient>,
+) -> content::Json<String> {
+    let usage = elastic.0.get_usage_since("netsle", 10080);
+
+    content::Json(json!({ "usage": usage }).to_string())
+}

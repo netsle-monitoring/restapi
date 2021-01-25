@@ -1,6 +1,7 @@
 extern crate base64;
-use crate::elastic::packet_count::{self};
-use crate::elastic::ports_data::{self};
+use crate::elastic::packet_count;
+use crate::elastic::ips_data;
+use crate::elastic::ports_data;
 use reqwest::blocking;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
@@ -95,6 +96,44 @@ impl Client {
         ports_data::FinalData::from(main_hits)
         // println!("{:?}", hits);
         // serde_json::to_string(&hits).unwrap()
+    }
+
+    pub fn get_usage_since(&self, index: &'static str, minutes: i32) -> String {
+        let start = SystemTime::now();
+        let since_the_epoch = start
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis()
+            - ((minutes * 60000) as u128);
+
+        let result = self.get_request(
+            index,
+            json!({
+                "query": {
+                  "range": {
+                    "@timestamp": {
+                      "gt": since_the_epoch.to_string(),
+                      "format": "epoch_millis"
+                    }
+                  }
+                },
+                "size": 10000,
+                "fields": ["@timestamp", "ips"]
+              })
+            .to_string(),
+        );
+
+        let main_hits: ips_data::MainData = serde_json::from_value(result).unwrap();
+        let all_data = ips_data::FinalData::from(main_hits);
+
+        let mut result = 0u128;
+        
+        for data in all_data.data {
+            result += data.usage / 1024 / 1024 / 2;
+            // println!("{}-", data.usage);
+        } 
+
+        result.to_string()
     }
 
     fn get_request(&self, index: &'static str, body: String) -> Value {
