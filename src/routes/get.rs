@@ -1,9 +1,12 @@
-use crate::database::IMPORTANT_PORTS;
+use crate::database::{self, IMPORTANT_PORTS};
 use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
 use std::collections::HashMap;
+use crate::guards::RefreshApiKey;
+use crate::guards::{self, auth};
+use crate::MainDbConn;
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -63,4 +66,10 @@ pub fn dashboard_usage_data(
     let usage = elastic.0.get_usage_since("netsle", 10080);
 
     content::Json(json!({ "usage": usage }).to_string())
+}
+
+#[get("/signout")]
+pub fn signout(conn: MainDbConn, refresh: RefreshApiKey) -> &'static str {
+    database::users::update_refresh_token(&*conn, &refresh.0, "");
+    "{}"
 }
