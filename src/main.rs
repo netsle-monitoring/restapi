@@ -18,11 +18,26 @@ mod elastic;
 mod guards;
 mod routes;
 mod schema;
+use rocket_cors::{AllowedHeaders, AllowedOrigins};
+use rocket::http::Method;
 
 #[database("main")]
 pub struct MainDbConn(diesel::SqliteConnection);
 
 fn main() {
+    let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:3000"]);
+
+    // You can also deserialize this
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Get, Method::Put, Method::Post, Method::Delete].into_iter().map(From::from).collect(),
+        allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "content-type", "Refresh-Token"]),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors().unwrap();
+
+
     // Load environment variables through the file .env
     dotenv::from_filename(".env").ok();
 
@@ -31,12 +46,15 @@ fn main() {
     rocket::ignite()
         .manage(elastic::ElasticClient(elastic))
         .attach(MainDbConn::fairing())
-        .attach(guards::cors::CORS())
+        .attach(cors)
         .mount(
             "/",
             routes![
                 routes::get::index,
-                routes::get::network_stats,
+                routes::get::dashboard_packet_count_graph,
+                routes::get::dashboard_total_packets,
+                routes::get::dashboard_ports_data,
+                routes::get::dashboard_usage_data,
                 routes::post::login,
                 routes::post::refresh_token,
                 routes::post::refresh_token_options
