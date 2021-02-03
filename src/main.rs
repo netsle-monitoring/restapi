@@ -55,9 +55,10 @@ fn main() {
                 routes::get::dashboard_total_packets,
                 routes::get::dashboard_ports_data,
                 routes::get::dashboard_usage_data,
+                routes::get::signout,
                 routes::post::login,
                 routes::post::refresh_token,
-                routes::post::refresh_token_options
+                routes::post::refresh_token_options,
             ],
         )
         .launch();

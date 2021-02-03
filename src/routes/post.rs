@@ -97,6 +97,6 @@ pub fn refresh_token(
 }
 
 #[options("/refresh_token")]
-pub fn refresh_token_options() ->&'static str {
+pub fn refresh_token_options() -> &'static str {
     ""
 }
