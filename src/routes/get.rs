@@ -68,6 +68,25 @@ pub fn dashboard_usage_data(
     content::Json(json!({ "usage": usage }).to_string())
 }
 
+#[get("/dashboard/hosts_data")]
+pub fn dashboard_hosts_data(
+    _access: ApiKey,
+    elastic: State<elastic::ElasticClient>,
+) -> content::Json<String> {
+    let mut hosts = HashMap::<String, u32>::new();
+
+    let response = elastic.0.get_hosts_since("netsle", 10080);
+
+    for hit in response.data {
+        for hit1 in hit.ips {
+            *hosts.entry(hit1.ip).or_insert(0) += hit1.count as u32;
+        }
+
+    }
+
+    content::Json(json!({ "hosts": hosts }).to_string())
+}
+
 #[get("/signout")]
 pub fn signout(conn: MainDbConn, refresh: RefreshApiKey) -> &'static str {
     database::users::update_refresh_token(&*conn, &refresh.0, "");
