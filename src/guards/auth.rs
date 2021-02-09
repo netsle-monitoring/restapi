@@ -1,8 +1,8 @@
-use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey};
+use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin};
 use crate::database;
 use crate::MainDbConn;
 use jsonwebtoken::errors::ErrorKind::{ExpiredSignature, InvalidSignature, InvalidToken};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use rocket::{
     http::Status,
     request::{self, FormItems, FromForm, FromRequest, Request},
@@ -143,8 +143,60 @@ impl<'a, 'r> FromRequest<'a, 'r> for RefreshApiKey {
     }
 }
 
+impl<'a, 'r> FromRequest<'a, 'r> for Admin {
+    type Error = ApiKeyError;
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+        let header_map = request.headers();
+
+        if !header_map.contains("Authorization") {
+            return Outcome::Failure((Status::BadRequest, ApiKeyError::Missing));
+        }
+
+        let auth_header = header_map.get("Authorization").next().unwrap();
+
+        if !(auth_header.len() > 7) {
+            return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid));
+        }
+
+        let token = &auth_header[7..]; // Remove the "Bearer " part!
+
+        let validation = Validation {
+            iss: Some("Netsle".to_string()),
+            ..Validation::default()
+        };
+
+        let jwt_secret = env::var("JWT_SECRET").unwrap();
+
+        // Obviously this won't be the production secret, just for now
+        match decode::<JWTClaims>(
+            token,
+            &DecodingKey::from_secret(jwt_secret.as_ref()),
+            &validation,
+        ) {
+            Ok(data) => {
+                match &data.header.kid.unwrap()[..] {
+                    "regular" => {
+                        return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid))
+
+                    }, _ => {}
+                }
+            },
+            Err(err) => match *err.kind() {
+                ExpiredSignature => {
+                    return Outcome::Failure((Status::Forbidden, ApiKeyError::Expired))
+                }
+                InvalidToken | InvalidSignature => {
+                    return Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid))
+                }
+                _ => panic!(format!("{:?}", *err.kind())),
+            },
+        };
+
+        Outcome::Success(Admin("".to_owned()))
+    }
+}
 // (access, expiry, refresh)
-pub fn generate_tokens(username: String) -> (String, usize, String) {
+pub fn generate_tokens(username: String, admin: bool) -> (String, usize, String) {
     let start = SystemTime::now();
     let since_the_epoch = start
         .duration_since(UNIX_EPOCH)
@@ -175,15 +227,24 @@ pub fn generate_tokens(username: String) -> (String, usize, String) {
         exp: (since_the_epoch + (refresh_jwt_expiry * 60)) as usize, // Expires in whatever minutes are inside .env
     };
 
+    let mut header = Header::new(Algorithm::default());
+    header.kid = match admin {
+        true => {
+            Some("admin".to_owned())
+        }, _ => {
+            Some("regular".to_owned())
+        }
+    };
+
     let access_token = encode(
-        &Header::default(),
+        &header,
         &access_token_claims,
         &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap();
 
     let refresh_token = encode(
-        &Header::default(),
+        &header,
         &refresh_token_claims,
         &EncodingKey::from_secret(
             format!("{}{}", jwt_refresh_secret, String::from(&username)).as_ref(),
