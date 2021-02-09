@@ -1,7 +1,7 @@
 use crate::crypto;
 use crate::database;
-use crate::guards::{RefreshApiKey, Admin};
 use crate::guards::{self, auth};
+use crate::guards::{Admin, RefreshApiKey};
 use crate::MainDbConn;
 use rocket::request::Form;
 use rocket::response::content;
@@ -95,7 +95,8 @@ pub fn refresh_token(
 
     let user = user_result.unwrap();
 
-    let (access_token, expiry, refresh_token) = auth::generate_tokens(String::from(&refresh.0), user.is_admin);
+    let (access_token, expiry, refresh_token) =
+        auth::generate_tokens(String::from(&refresh.0), user.is_admin);
 
     let response = SuccessfulLoginResponse {
         refresh_token,
@@ -107,11 +108,30 @@ pub fn refresh_token(
     Ok(content::Json(serde_json::to_string(&response).unwrap()))
 }
 
-#[post("/create_user")]
+#[post("/create_user", data = "<user_creation_details>")]
 pub fn create_user(
     conn: MainDbConn,
+    user_creation_details: Form<guards::UserCreationCredentials>,
     admin: Admin,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
+    let user_result = database::users::create_user(
+        &*conn,
+        String::from(&user_creation_details.username),
+        String::from(&user_creation_details.password),
+        user_creation_details.admin,
+    );
+
+    match user_result {
+        Err(e) => {
+            return Err(BadRequest(Some(content::Json(
+                serde_json::to_string(&ErrorResponse {
+                    message: e,
+                })
+                .unwrap(),
+            ))));
+        }
+        _ => {}
+    }
     Ok(content::Json("".to_owned()))
 }
 #[options("/refresh_token")]
