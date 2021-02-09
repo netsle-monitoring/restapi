@@ -1,6 +1,6 @@
 use crate::crypto;
 use crate::database;
-use crate::guards::RefreshApiKey;
+use crate::guards::{RefreshApiKey, Admin};
 use crate::guards::{self, auth};
 use crate::MainDbConn;
 use rocket::request::Form;
@@ -59,7 +59,7 @@ pub fn login(
     }
 
     let (access_token, expiry, refresh_token) =
-        auth::generate_tokens(String::from(&login.username));
+        auth::generate_tokens(String::from(&login.username), user.is_admin);
 
     let response = SuccessfulLoginResponse {
         refresh_token,
@@ -84,7 +84,18 @@ pub fn refresh_token(
     conn: MainDbConn,
     refresh: RefreshApiKey,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
-    let (access_token, expiry, refresh_token) = auth::generate_tokens(String::from(&refresh.0));
+    let user_result = database::users::get_user(&*conn, &refresh.0.to_owned());
+
+    // TODO: Find a way of not cloning this piece of code.
+    if user_result.is_none() {
+        return Err(BadRequest(Some(content::Json(
+            serde_json::to_string("todo").unwrap(),
+        ))));
+    }
+
+    let user = user_result.unwrap();
+
+    let (access_token, expiry, refresh_token) = auth::generate_tokens(String::from(&refresh.0), user.is_admin);
 
     let response = SuccessfulLoginResponse {
         refresh_token,
@@ -96,6 +107,13 @@ pub fn refresh_token(
     Ok(content::Json(serde_json::to_string(&response).unwrap()))
 }
 
+#[post("/create_user")]
+pub fn create_user(
+    conn: MainDbConn,
+    admin: Admin,
+) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
+    Ok(content::Json("".to_owned()))
+}
 #[options("/refresh_token")]
 pub fn refresh_token_options() -> &'static str {
     ""

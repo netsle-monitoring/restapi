@@ -11,6 +11,7 @@ pub struct User {
     pub hashed_pw: Vec<u8>,
     pub refresh_token: String,
     pub salt: Vec<u8>,
+    pub is_admin: bool
 }
 
 #[derive(Debug, Insertable, AsChangeset)]
@@ -20,4 +21,5 @@ pub struct NewUser<'a> {
     pub hashed_pw: &'a [u8],
     pub refresh_token: &'a str,
     pub salt: Vec<u8>,
+    pub is_admin: bool
 }

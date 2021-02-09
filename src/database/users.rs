@@ -18,6 +18,7 @@ pub fn create_user(
         refresh_token: "",
         hashed_pw: &hash,
         salt,
+        is_admin: true
     };
 
     let result = insert_into(users).values(&new_user).execute(&*conn);

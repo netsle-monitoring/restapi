@@ -10,6 +10,7 @@ pub struct JWTClaims {
 
 pub struct ApiKey(pub TokenData<JWTClaims>);
 pub struct RefreshApiKey(pub String); // This string is for the username so a new token can be generated
+pub struct Admin(pub String); // This string is for the username
 
 #[derive(Debug)]
 pub enum ApiKeyError {

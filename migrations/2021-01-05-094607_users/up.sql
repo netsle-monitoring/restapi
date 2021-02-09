@@ -4,5 +4,6 @@ CREATE TABLE users (
     username TEXT NOT NULL, 
     hashed_pw BINARY NOT NULL, 
     refresh_token TEXT NOT NULL, 
-    salt BINARY NOT NULL
+    salt BINARY NOT NULL,
+    is_admin BOOLEAN NOT NULL
  )
