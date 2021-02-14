@@ -14,6 +14,14 @@ pub struct User {
     pub is_admin: bool
 }
 
+#[derive(Debug, Queryable, Serialize)]
+pub struct PublicUser {
+    pub id: Option<i32>,
+    pub username: String,
+    pub is_admin: bool
+}
+
+
 #[derive(Debug, Insertable, AsChangeset)]
 #[table_name = "users"]
 pub struct NewUser<'a> {

@@ -1,10 +1,11 @@
 use crate::database::{self, IMPORTANT_PORTS};
+use crate::database::models::User;
 use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
 use std::collections::HashMap;
-use crate::guards::RefreshApiKey;
+use crate::guards::{RefreshApiKey, Admin};
 use crate::guards::{self, auth};
 use crate::MainDbConn;
 
@@ -91,4 +92,15 @@ pub fn dashboard_hosts_data(
 pub fn signout(conn: MainDbConn, refresh: RefreshApiKey) -> &'static str {
     database::users::update_refresh_token(&*conn, &refresh.0, "");
     "{}"
+}
+
+#[get("/admin/user_list")]
+pub fn user_list(
+    _access: ApiKey,
+    _admin: Admin,
+    conn: MainDbConn, 
+) -> content::Json<std::string::String> {
+    let users = database::users::get_all_users(&*conn);
+    
+    content::Json(serde_json::to_string(&users.unwrap()).unwrap())
 }

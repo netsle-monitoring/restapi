@@ -112,7 +112,7 @@ pub fn create_user(
     conn: MainDbConn,
     admin: Admin,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
-    Ok(content::Json("".to_owned()))
+    Ok(content::Json("{}".to_owned()))
 }
 #[options("/refresh_token")]
 pub fn refresh_token_options() -> &'static str {

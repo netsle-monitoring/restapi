@@ -1,8 +1,8 @@
 use crate::crypto::hash_password;
-use crate::database::models::{NewUser, User};
+use crate::database::models::{NewUser, User, PublicUser};
 use crate::schema::users::dsl::{
     hashed_pw as hashed_pw_column, id as id_column, refresh_token as refresh_token_column,
-    salt as salt_column, username as username_column, users,
+    salt as salt_column, username as username_column, users, is_admin as is_admin_column
 };
 use diesel::prelude::*;
 use diesel::{insert_into, SqliteConnection};
@@ -56,6 +56,16 @@ pub fn get_username_for_refresh_token(conn: &SqliteConnection, token: &str) -> O
 
     if result.is_some() {
         return Some(result.unwrap().username);
+    } else {
+        return None;
+    }
+}
+
+pub fn get_all_users(conn: &SqliteConnection) -> Option<Vec<PublicUser>> {
+    let result = users.select((id_column, username_column, is_admin_column)).load::<PublicUser>(&*conn);
+
+    if result.is_ok() {
+        return Some(result.unwrap());
     } else {
         return None;
     }

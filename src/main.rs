@@ -57,6 +57,7 @@ fn main() {
                 routes::get::dashboard_usage_data,
                 routes::get::dashboard_hosts_data,
                 routes::get::signout,
+                routes::get::user_list,
                 routes::post::login,
                 routes::post::create_user,
                 routes::post::refresh_token,
