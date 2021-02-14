@@ -11,14 +11,26 @@ pub fn create_user(
     conn: &SqliteConnection,
     username: String,
     password: String,
+    admin: bool,
 ) -> Result<(), &'static str> {
+    let result: Option<User> = users
+        // .select((id_column, username_column, salt_column, refresh_token_column, hashed_pw_column))
+        .filter(username_column.eq(username.to_string()))
+        .first(&*conn)
+        .optional()
+        .unwrap();
+
+    if result.is_some() {
+        return Err("This username already exists in the system.");
+    }
+
     let (salt, hash) = hash_password(&username, &password);
     let new_user = NewUser {
         username: &username,
         refresh_token: "",
         hashed_pw: &hash,
         salt,
-        is_admin: true
+        is_admin: admin,
     };
 
     let result = insert_into(users).values(&new_user).execute(&*conn);

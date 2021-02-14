@@ -107,13 +107,33 @@ pub fn refresh_token(
     Ok(content::Json(serde_json::to_string(&response).unwrap()))
 }
 
-#[post("/create_user")]
+#[post("/create_user", data = "<user_creation_details>")]
 pub fn create_user(
     conn: MainDbConn,
+    user_creation_details: Form<guards::UserCreationCredentials>,
     admin: Admin,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
+    let user_result = database::users::create_user(
+        &*conn,
+        String::from(&user_creation_details.username),
+        String::from(&user_creation_details.password),
+        user_creation_details.admin,
+    );
+
+    match user_result {
+        Err(e) => {
+            return Err(BadRequest(Some(content::Json(
+                serde_json::to_string(&ErrorResponse {
+                    message: e,
+                })
+                .unwrap(),
+            ))));
+        }
+        _ => {}
+    }
     Ok(content::Json("{}".to_owned()))
 }
+
 #[options("/refresh_token")]
 pub fn refresh_token_options() -> &'static str {
     ""

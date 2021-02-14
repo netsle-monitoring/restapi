@@ -25,4 +25,11 @@ pub struct LoginCredentials {
     pub password: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct UserCreationCredentials {
+    pub username: String,
+    pub password: String,
+    pub admin: bool
+}
+
 pub mod auth;
