@@ -1,7 +1,7 @@
 use crate::crypto;
 use crate::database;
-use crate::guards::{RefreshApiKey, Admin};
 use crate::guards::{self, auth};
+use crate::guards::{Admin, RefreshApiKey};
 use crate::MainDbConn;
 use rocket::request::Form;
 use rocket::response::content;
@@ -95,7 +95,8 @@ pub fn refresh_token(
 
     let user = user_result.unwrap();
 
-    let (access_token, expiry, refresh_token) = auth::generate_tokens(String::from(&refresh.0), user.is_admin);
+    let (access_token, expiry, refresh_token) =
+        auth::generate_tokens(String::from(&refresh.0), user.is_admin);
 
     let response = SuccessfulLoginResponse {
         refresh_token,

@@ -259,9 +259,12 @@ impl<'a, 'r> FromRequest<'a, 'r> for Admin {
             &DecodingKey::from_secret(jwt_secret.as_ref()),
             &validation,
         ) {
-            Ok(data) => match &data.header.kid.unwrap()[..] {
-                "regular" => return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid)),
-                _ => {}
+            Ok(data) => {
+                match &data.header.kid.unwrap()[..] {
+                    "regular" => {
+                        return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid))
+                    }, _ => {}
+                }
             },
             Err(err) => match *err.kind() {
                 ExpiredSignature => {
