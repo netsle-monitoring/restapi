@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JWTClaims {
     pub exp: usize,
-    sub: String, // username
+    pub sub: String, // username
     iss: String, // Netsle
 }
 
