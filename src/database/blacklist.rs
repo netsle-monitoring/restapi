@@ -3,8 +3,8 @@ use crate::schema::blacklist::dsl::{
 };
 
 use diesel::prelude::*;
-use crate::database::models::{NewBlacklistEntry, BlacklistEntry};
-use diesel::{insert_into, SqliteConnection};
+use crate::database::models::NewBlacklistEntry;
+use diesel::SqliteConnection;
 use crate::schema::blacklist;
 
 pub fn create_entry(conn: &SqliteConnection, ip: String) -> std::result::Result<(), &'static str> {
