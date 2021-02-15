@@ -3,7 +3,7 @@ use rocket::request::Form;
 use rocket::response::content;
 use rocket::response::status::BadRequest;
 use crate::database;
-use crate::guards::{UserDeleteForm, ApiKey, Admin};
+use crate::guards::{UserDeleteForm, ApiKey, Admin, BlacklistEntryCreation};
 use crate::MainDbConn;
 
 #[derive(Serialize)]
@@ -23,6 +23,26 @@ pub fn delete_user(
     }
 
     let result = database::users::delete_user(&*conn, &delete_form.username);
+
+    match result {
+        Ok(_) => {
+            Ok(content::Json("{}".to_string()))
+        },
+        Err(_) => {
+            Err(BadRequest(Some("{\"message\": \"Something bad happened with our database :)\"}")))
+        }
+    }
+}
+
+#[delete("/admin/blacklist", data = "<delete_form>")]
+pub fn delete_blacklist_entry(
+    _key: ApiKey,
+    _admin: Admin,
+    conn: MainDbConn,
+    delete_form: Form<BlacklistEntryCreation>
+) -> Result<content::Json<String>, BadRequest<&'static str>> {
+
+    let result = database::blacklist::delete_entry(&*conn, String::from(&delete_form.ip));
 
     match result {
         Ok(_) => {

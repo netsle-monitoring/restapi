@@ -56,13 +56,15 @@ fn main() {
                 routes::get::dashboard_ports_data,
                 routes::get::dashboard_usage_data,
                 routes::get::dashboard_hosts_data,
+                routes::get::blacklist,
                 routes::get::signout,
                 routes::get::user_list,
                 routes::post::login,
+                routes::post::create_blacklist_entry,
                 routes::post::create_user,
                 routes::post::refresh_token,
-                routes::post::refresh_token_options,
                 routes::delete::delete_user,
+                routes::delete::delete_blacklist_entry,
             ],
         )
         .launch();

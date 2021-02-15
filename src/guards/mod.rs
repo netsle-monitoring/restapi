@@ -33,6 +33,11 @@ pub struct UserCreationCredentials {
 }
 
 #[derive(Debug, Clone)]
+pub struct BlacklistEntryCreation {
+    pub ip: String
+}
+
+#[derive(Debug, Clone)]
 pub struct UserDeleteForm {
     pub username: String
  }

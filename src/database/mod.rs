@@ -1,5 +1,6 @@
-pub mod models;
 pub mod users;
+pub mod blacklist;
+pub mod models;
 
 pub const IMPORTANT_PORTS: [u16; 17] = [
     20,

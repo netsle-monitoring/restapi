@@ -102,3 +102,12 @@ pub fn user_list(
     
     content::Json(serde_json::to_string(&users.unwrap()).unwrap())
 }
+
+#[get("/admin/blacklist")]
+pub fn blacklist(
+    conn: MainDbConn, 
+) -> content::Json<std::string::String> {
+    let blacklist = database::blacklist::get_all_entries(&*conn);
+    
+    content::Json(serde_json::to_string(&blacklist.unwrap()).unwrap())
+}

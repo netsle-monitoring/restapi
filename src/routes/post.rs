@@ -133,8 +133,25 @@ pub fn create_user(
     }
     Ok(content::Json("{}".to_owned()))
 }
+#[post("/admin/blacklist", data = "<blacklist_entry>")]
+pub fn create_blacklist_entry(
+    conn: MainDbConn,
+    blacklist_entry: Form<guards::BlacklistEntryCreation>,
+    _admin: Admin,
+) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
+    let result = database::blacklist::create_entry(&*conn, String::from(&blacklist_entry.ip));
 
-#[options("/refresh_token")]
-pub fn refresh_token_options() -> &'static str {
-    ""
+    match result {
+        Ok(_) => {
+            Ok(content::Json("{}".to_owned()))
+        },
+        Err(e) => {
+            return Err(BadRequest(Some(content::Json(
+                serde_json::to_string(&ErrorResponse {
+                    message: e,
+                })
+                .unwrap(),
+            ))));
+        }
+    }
 }

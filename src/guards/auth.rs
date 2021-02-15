@@ -1,4 +1,7 @@
-use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin, UserCreationCredentials, UserDeleteForm};
+use super::{
+    Admin, ApiKey, ApiKeyError, BlacklistEntryCreation, JWTClaims, LoginCredentials, RefreshApiKey,
+    UserCreationCredentials, UserDeleteForm,
+};
 use crate::database;
 use crate::MainDbConn;
 use jsonwebtoken::errors::ErrorKind::{ExpiredSignature, InvalidSignature, InvalidToken};
@@ -63,7 +66,6 @@ impl<'f> FromForm<'f> for LoginCredentials {
     fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<LoginCredentials, ()> {
         let mut username = None;
         let mut password = None;
-        
         for credential in credentials {
             match credential.key.as_str() {
                 "username" if username.is_none() => {
@@ -91,7 +93,6 @@ impl<'f> FromForm<'f> for UserDeleteForm {
 
     fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<UserDeleteForm, ()> {
         let mut username = None;
-        
         for credential in credentials {
             match credential.key.as_str() {
                 "username" if username.is_none() => {
@@ -109,10 +110,36 @@ impl<'f> FromForm<'f> for UserDeleteForm {
     }
 }
 
+impl<'f> FromForm<'f> for BlacklistEntryCreation {
+    type Error = ();
+
+    fn from_form(
+        credentials: &mut FormItems<'f>,
+        strict: bool,
+    ) -> Result<BlacklistEntryCreation, ()> {
+        let mut ip = None;
+        for credential in credentials {
+            match credential.key.as_str() {
+                "ip" if ip.is_none() => {
+                    let decoded = credential.value.url_decode().map_err(|_| ())?;
+                    ip = Some(decoded)
+                }
+                _ if strict => return Err(()),
+                _ => {}
+            }
+        }
+
+        Ok(BlacklistEntryCreation { ip: ip.unwrap() })
+    }
+}
+
 impl<'f> FromForm<'f> for UserCreationCredentials {
     type Error = ();
 
-    fn from_form(credentials: &mut FormItems<'f>, _strict: bool) -> Result<UserCreationCredentials, ()> {
+    fn from_form(
+        credentials: &mut FormItems<'f>,
+        _strict: bool,
+    ) -> Result<UserCreationCredentials, ()> {
         let mut username = None;
         let mut password = None;
         let mut admin = false;
@@ -130,7 +157,7 @@ impl<'f> FromForm<'f> for UserCreationCredentials {
                 "admin" => {
                     let decoded = credential.value.url_decode().map_err(|_| ())?;
                     println!("{}", decoded);
-                    admin = if decoded == "true" {true} else {false}
+                    admin = if decoded == "true" { true } else { false }
                 }
                 // _ if strict => {},
                 _ => {}
@@ -140,7 +167,7 @@ impl<'f> FromForm<'f> for UserCreationCredentials {
         Ok(UserCreationCredentials {
             username: username.unwrap(),
             password: password.unwrap(),
-            admin
+            admin,
         })
     }
 }
@@ -232,13 +259,9 @@ impl<'a, 'r> FromRequest<'a, 'r> for Admin {
             &DecodingKey::from_secret(jwt_secret.as_ref()),
             &validation,
         ) {
-            Ok(data) => {
-                match &data.header.kid.unwrap()[..] {
-                    "regular" => {
-                        return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid))
-
-                    }, _ => {}
-                }
+            Ok(data) => match &data.header.kid.unwrap()[..] {
+                "regular" => return Outcome::Failure((Status::Forbidden, ApiKeyError::Invalid)),
+                _ => {}
             },
             Err(err) => match *err.kind() {
                 ExpiredSignature => {
@@ -288,11 +311,8 @@ pub fn generate_tokens(username: String, admin: bool) -> (String, usize, String)
 
     let mut header = Header::new(Algorithm::default());
     header.kid = match admin {
-        true => {
-            Some("admin".to_owned())
-        }, _ => {
-            Some("regular".to_owned())
-        }
+        true => Some("admin".to_owned()),
+        _ => Some("regular".to_owned()),
     };
 
     let access_token = encode(

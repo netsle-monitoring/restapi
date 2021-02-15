@@ -1,7 +1,6 @@
 table! {
-    blacklist (id) {
-        id -> Nullable<Integer>,
-        ip -> Nullable<Integer>,
+    blacklist (ip) {
+        ip -> Text,
     }
 }
 

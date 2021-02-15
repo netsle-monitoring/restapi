@@ -15,6 +15,11 @@ pub struct User {
 }
 
 #[derive(Debug, Queryable, Serialize)]
+pub struct BlacklistEntry {
+    pub ip: String
+}
+
+#[derive(Debug, Queryable, Serialize)]
 pub struct PublicUser {
     pub id: Option<i32>,
     pub username: String,
@@ -30,4 +35,10 @@ pub struct NewUser<'a> {
     pub refresh_token: &'a str,
     pub salt: Vec<u8>,
     pub is_admin: bool
+}
+
+#[derive(Debug, Insertable, AsChangeset)]
+#[table_name = "blacklist"]
+pub struct NewBlacklistEntry<'a> {
+    pub ip: &'a str
 }
