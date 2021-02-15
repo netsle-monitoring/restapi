@@ -62,6 +62,7 @@ fn main() {
                 routes::post::create_user,
                 routes::post::refresh_token,
                 routes::post::refresh_token_options,
+                routes::delete::delete_user,
             ],
         )
         .launch();

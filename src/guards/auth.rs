@@ -1,4 +1,4 @@
-use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin, UserCreationCredentials};
+use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin, UserCreationCredentials, UserDeleteForm};
 use crate::database;
 use crate::MainDbConn;
 use jsonwebtoken::errors::ErrorKind::{ExpiredSignature, InvalidSignature, InvalidToken};
@@ -82,6 +82,29 @@ impl<'f> FromForm<'f> for LoginCredentials {
         Ok(LoginCredentials {
             username: username.unwrap(),
             password: password.unwrap(),
+        })
+    }
+}
+
+impl<'f> FromForm<'f> for UserDeleteForm {
+    type Error = ();
+
+    fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<UserDeleteForm, ()> {
+        let mut username = None;
+        
+        for credential in credentials {
+            match credential.key.as_str() {
+                "username" if username.is_none() => {
+                    let decoded = credential.value.url_decode().map_err(|_| ())?;
+                    username = Some(decoded)
+                }
+                _ if strict => return Err(()),
+                _ => {}
+            }
+        }
+
+        Ok(UserDeleteForm {
+            username: username.unwrap(),
         })
     }
 }

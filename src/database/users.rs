@@ -89,3 +89,7 @@ pub fn update_refresh_token(conn: &SqliteConnection, username: &str, refresh_tok
         .set(refresh_token_column.eq(refresh_token.to_string()))
         .execute(&*conn);
 }
+
+pub fn delete_user(conn: &SqliteConnection, username: &str) -> Result<usize, diesel::result::Error> {
+    diesel::delete(users.filter(username_column.eq(username))).execute(&*conn)
+}

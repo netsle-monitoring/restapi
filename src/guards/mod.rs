@@ -32,4 +32,9 @@ pub struct UserCreationCredentials {
     pub admin: bool
 }
 
+#[derive(Debug, Clone)]
+pub struct UserDeleteForm {
+    pub username: String
+ }
+
 pub mod auth;
