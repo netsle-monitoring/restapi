@@ -80,7 +80,7 @@ fn bootstrap_database() -> Option<()> {
     }
 
     let create_user_result =
-        database::users::create_user(&connection, "netsle".to_string(), "changeme".to_string());
+        database::users::create_user(&connection, "netsle".to_string(), "changeme".to_string(), true);
 
     match create_user_result {
         Ok(_) => {}

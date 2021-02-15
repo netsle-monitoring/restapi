@@ -1,4 +1,4 @@
-use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin};
+use super::{ApiKey, ApiKeyError, JWTClaims, LoginCredentials, RefreshApiKey, Admin, UserCreationCredentials};
 use crate::database;
 use crate::MainDbConn;
 use jsonwebtoken::errors::ErrorKind::{ExpiredSignature, InvalidSignature, InvalidToken};
@@ -63,7 +63,7 @@ impl<'f> FromForm<'f> for LoginCredentials {
     fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<LoginCredentials, ()> {
         let mut username = None;
         let mut password = None;
-
+        
         for credential in credentials {
             match credential.key.as_str() {
                 "username" if username.is_none() => {
@@ -82,6 +82,42 @@ impl<'f> FromForm<'f> for LoginCredentials {
         Ok(LoginCredentials {
             username: username.unwrap(),
             password: password.unwrap(),
+        })
+    }
+}
+
+impl<'f> FromForm<'f> for UserCreationCredentials {
+    type Error = ();
+
+    fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<UserCreationCredentials, ()> {
+        let mut username = None;
+        let mut password = None;
+        let mut admin = false;
+
+        for credential in credentials {
+            match credential.key.as_str() {
+                "username" if username.is_none() => {
+                    let decoded = credential.value.url_decode().map_err(|_| ())?;
+                    username = Some(decoded)
+                }
+                "password" if password.is_none() => {
+                    let decoded = credential.value.url_decode().map_err(|_| ())?;
+                    password = Some(decoded)
+                }
+                "admin" => {
+                    let decoded = credential.value.url_decode().map_err(|_| ())?;
+                    println!("{}", decoded);
+                    admin = if decoded == "true" {true} else {false}
+                }
+                // _ if strict => {},
+                _ => {}
+            }
+        }
+
+        Ok(UserCreationCredentials {
+            username: username.unwrap(),
+            password: password.unwrap(),
+            admin
         })
     }
 }
