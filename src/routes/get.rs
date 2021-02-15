@@ -1,12 +1,10 @@
 use crate::database::{self, IMPORTANT_PORTS};
-use crate::database::models::User;
 use crate::elastic;
 use crate::guards::ApiKey;
 use rocket::response::content;
 use rocket::State;
 use std::collections::HashMap;
 use crate::guards::{RefreshApiKey, Admin};
-use crate::guards::{self, auth};
 use crate::MainDbConn;
 
 #[get("/")]
