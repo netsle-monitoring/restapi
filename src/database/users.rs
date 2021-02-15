@@ -1,8 +1,8 @@
 use crate::crypto::hash_password;
 use crate::database::models::{NewUser, User, PublicUser};
 use crate::schema::users::dsl::{
-    hashed_pw as hashed_pw_column, id as id_column, refresh_token as refresh_token_column,
-    salt as salt_column, username as username_column, users, is_admin as is_admin_column
+    id as id_column, refresh_token as refresh_token_column,
+    username as username_column, users, is_admin as is_admin_column
 };
 use diesel::prelude::*;
 use diesel::{insert_into, SqliteConnection};

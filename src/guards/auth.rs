@@ -112,7 +112,7 @@ impl<'f> FromForm<'f> for UserDeleteForm {
 impl<'f> FromForm<'f> for UserCreationCredentials {
     type Error = ();
 
-    fn from_form(credentials: &mut FormItems<'f>, strict: bool) -> Result<UserCreationCredentials, ()> {
+    fn from_form(credentials: &mut FormItems<'f>, _strict: bool) -> Result<UserCreationCredentials, ()> {
         let mut username = None;
         let mut password = None;
         let mut admin = false;

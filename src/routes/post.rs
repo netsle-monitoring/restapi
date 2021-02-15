@@ -111,7 +111,7 @@ pub fn refresh_token(
 pub fn create_user(
     conn: MainDbConn,
     user_creation_details: Form<guards::UserCreationCredentials>,
-    admin: Admin,
+    _admin: Admin,
 ) -> Result<content::Json<String>, BadRequest<content::Json<String>>> {
     let user_result = database::users::create_user(
         &*conn,

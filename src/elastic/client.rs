@@ -21,19 +21,6 @@ impl Client {
         }
     }
 
-    // Return the whole request for now (act as a proxy)
-    pub fn match_all_for_index(&self, index: &'static str) -> Value {
-        self.get_request(
-            index,
-            json!({
-                "query": {
-                    "match_all": {}
-                }
-            })
-            .to_string(),
-        )
-    }
-
     pub fn get_packet_count_since(&self, index: &'static str, minutes: i32) -> packet_count::FinalData {
         let start = SystemTime::now();
         let since_the_epoch = start
